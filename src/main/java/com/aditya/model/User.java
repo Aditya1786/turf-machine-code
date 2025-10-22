@@ -1,13 +1,22 @@
 package com.aditya.model;
 
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
+@NoArgsConstructor // required by JPA
+@AllArgsConstructor // optional: for easy object creation
+@Entity
+@Table(name = "users")
 public class User {
-  private final String id;
-  private final String name;
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private String id;
+
+  private String name;
 }

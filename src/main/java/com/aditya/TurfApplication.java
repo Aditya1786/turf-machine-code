@@ -16,6 +16,5 @@ public class TurfApplication implements CommandLineRunner {
   public void run(String... args) {
     // log server logs
     System.out.println("Turf Application Started");
-
   }
 }

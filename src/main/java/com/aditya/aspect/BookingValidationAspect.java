@@ -1,6 +1,8 @@
 package com.aditya.aspect;
 
 import com.aditya.model.Turf;
+import com.aditya.repository.TimeSlotRepository;
+import com.aditya.repository.TurfRepository;
 import com.aditya.service.TurfService;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -9,10 +11,12 @@ import org.springframework.stereotype.Component;
 @Component
 @Aspect
 public class BookingValidationAspect {
-  TurfService turfService;
+  TimeSlotRepository timeSlotRepository;
+  TurfRepository turfRepository;
 
-  public BookingValidationAspect(TurfService turfService) {
-    this.turfService = turfService;
+  public BookingValidationAspect(TimeSlotRepository timeSlotRepository, TurfRepository turfRepository) {
+    this.timeSlotRepository = timeSlotRepository;
+    this.turfRepository = turfRepository;
   }
 
   @Before(
@@ -29,16 +33,8 @@ public class BookingValidationAspect {
     }
 
     // check if requested time slot is already booked for the turf
-    Turf turf =
-        turfService.getAllTurfs().stream()
-            .filter(t -> t.getId().equals(turfId))
-            .findFirst()
-            .orElseThrow(
-                () -> new IllegalArgumentException("Turf with ID " + turfId + " does not exist."));
-
-    if (!turf.getAvailableTimeSlots().containsKey(timeSlotId)) {
-      throw new IllegalArgumentException(
-          "Time Slot ID " + timeSlotId + " is already booked for Turf ID " + turfId);
+    if (timeSlotRepository.findByIdAndTurfIdAndAvailableTrue(timeSlotId, turfId).isEmpty()) {
+      throw new IllegalArgumentException("Time Slot is already booked for the turf");
     }
   }
 }

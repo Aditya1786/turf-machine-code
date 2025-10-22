@@ -1,28 +1,16 @@
 package com.aditya.repository;
 
 import com.aditya.model.Booking;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.time.LocalDate;
+import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class BookingRepository {
-  Map<String, Booking> bookings;
+public interface BookingRepository extends JpaRepository<Booking, String> {
+  List<Booking> findByUserId(String userId);
 
-  public BookingRepository() {
-    this.bookings = new LinkedHashMap<>();
-  }
+  List<Booking> findByTurfId(String turfId);
 
-  public void save(Booking booking) {
-    bookings.put(booking.getId(), booking);
-  }
-
-  public Booking getById(String id) {
-    return bookings.get(id);
-  }
-
-  public Collection<Booking> getAll() {
-    return bookings.values();
-  }
+  List<Booking> findByTurfIdAndDate(String turfId, LocalDate date);
 }

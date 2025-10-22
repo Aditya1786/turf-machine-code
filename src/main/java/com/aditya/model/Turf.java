@@ -1,16 +1,23 @@
 package com.aditya.model;
 
-import java.util.Map;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.*;
+import java.util.List;
+import lombok.*;
 
 @Getter
 @Setter
 @AllArgsConstructor
+@NoArgsConstructor
+@Entity
+@Table(name = "turf")
 public class Turf {
-  private final String id;
-  private final String name;
-  private final String location;
-  private final Map<String, TimeSlot> availableTimeSlots;
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private String id;
+
+  private String name;
+  private String location;
+
+  @OneToMany(mappedBy = "turf", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<TimeSlot> availableTimeSlots;
 }

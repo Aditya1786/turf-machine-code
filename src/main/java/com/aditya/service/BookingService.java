@@ -1,44 +1,70 @@
 package com.aditya.service;
 
 import com.aditya.model.Booking;
+import com.aditya.model.TimeSlot;
+import com.aditya.model.Turf;
 import com.aditya.model.User;
 import com.aditya.repository.BookingRepository;
+import com.aditya.repository.TimeSlotRepository;
+import com.aditya.repository.TurfRepository;
 import com.aditya.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.NoSuchElementException;
 import org.springframework.stereotype.Service;
 
 @Service
 public class BookingService {
   private final BookingRepository bookingRepository;
-  private final TurfService turfService;
+  private final TurfRepository turfRepository;
   private final UserRepository userRepository;
+  private final TimeSlotRepository timeSlotRepository;
 
   public BookingService(
-      BookingRepository bookingRepository, TurfService turfService, UserRepository userRepository) {
+      BookingRepository bookingRepository,
+      TurfRepository turfRepository,
+      UserRepository userRepository,
+      TimeSlotRepository timeSlotRepository) {
     this.userRepository = userRepository;
     this.bookingRepository = bookingRepository;
-    this.turfService = turfService;
+    this.turfRepository = turfRepository;
+    this.timeSlotRepository = timeSlotRepository;
   }
 
+  @Transactional
   public Booking bookSlot(String userName, String turfId, String timeSlotId) {
-    // Logic to create and save a booking
-    String bookingId = "booking-" + (bookingRepository.getAll().size() + 1);
-    String userId = "user-" + userName.hashCode();
-    LocalDate date = LocalDate.now();
+    // find or create user
+    User user =
+        userRepository
+            .findByName(userName)
+            .orElseGet(() -> userRepository.save(new User(null, userName)));
 
-    // create and save user if not exists
-    User user = new User(userId, userName);
-    userRepository.save(user);
+    // find turf
+    Turf turf =
+        turfRepository
+            .findById(turfId)
+            .orElseThrow(() -> new NoSuchElementException("Turf not found"));
 
-    // create and save booking
-    Booking booking = new Booking(bookingId, userId, turfId, timeSlotId, date);
+    // find time slot
+    TimeSlot timeSlot =
+        timeSlotRepository
+            .findByIdAndTurfIdAndAvailableTrue(timeSlotId, turfId)
+            .orElseThrow(() -> new NoSuchElementException("Time slot not Available"));
+
+    // create Booking
+    Booking booking = new Booking(null, user, turf, timeSlot, LocalDate.now());
     bookingRepository.save(booking);
-    turfService.bookTimeSlot(turfId, timeSlotId);
+    timeSlot.setAvailable(false);
+    timeSlotRepository.save(timeSlot);
     return booking;
   }
 
+  public List<Booking> getBookings(String userId) {
+    return bookingRepository.findByUserId(userId);
+  }
+
   public List<Booking> getAllBookings() {
-    return bookingRepository.getAll().stream().toList();
+    return bookingRepository.findAll();
   }
 }
